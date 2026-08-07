@@ -73,7 +73,7 @@ const organizationSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["Active", "Inactive", "Pending"],
-      default: "Active"
+      default: "Pending"
     }
   },
   {

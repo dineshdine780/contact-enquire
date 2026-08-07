@@ -6,15 +6,16 @@ const {
   register,
   login,
   assignOrganization,
+  createOrganizationAdmin
 } = require("../controllers/authController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 
-// ===============================
+
 // REGISTER
-// ===============================
+
 
 router.post(
   "/register",
@@ -22,9 +23,9 @@ router.post(
 );
 
 
-// ===============================
+
 // LOGIN
-// ===============================
+
 
 router.post(
   "/login",
@@ -32,16 +33,29 @@ router.post(
 );
 
 
-// ===============================
+
 // ASSIGN ORGANIZATION
 // Platform Admin only
-// ===============================
+
 
 router.put(
   "/assign-organization",
   authMiddleware,
   roleMiddleware("platform_admin"),
   assignOrganization
+);
+
+
+
+// CREATE ORGANIZATION ADMIN
+// Platform Admin only
+
+
+router.post(
+  "/organization-admin",
+  authMiddleware,
+  roleMiddleware("platform_admin"),
+  createOrganizationAdmin
 );
 
 

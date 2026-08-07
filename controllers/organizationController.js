@@ -37,9 +37,9 @@ exports.createOrganization = async (req, res) => {
     }
 
 
-    // ================================
+
     // CREATE PUBLIC SLUG
-    // ================================
+    
 
     let publicSlug = organizationName
       .toLowerCase()
@@ -64,9 +64,9 @@ exports.createOrganization = async (req, res) => {
     }
 
 
-    // ================================
+ 
     // CREATE ORGANIZATION
-    // ================================
+    
 
     const organization =
       await Organization.create({
@@ -170,36 +170,44 @@ exports.getOrganization = async (req, res) => {
 // Update Organization
 exports.updateOrganization = async (req, res) => {
   try {
+    const { id } = req.params;
 
-    const organization =
-  await Organization.findByIdAndUpdate(
-    id,
-    {
+    const {
       organizationName,
       type,
       website,
       status
-    },
-    {
-      new: true
+    } = req.body;
+
+    const organization =
+      await Organization.findByIdAndUpdate(
+        id,
+        {
+          organizationName,
+          type,
+          website,
+          status
+        },
+        {
+          new: true,
+          runValidators: true
+        }
+      );
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found"
+      });
     }
-  );
 
-if (!organization) {
-  return res.status(404).json({
-    success: false,
-    message: "Organization not found"
-  });
-}
-
-
-// Create audit log
-await AuditLog.create({
-  user: req.user.userId,
-  action: "UPDATE_ORGANIZATION",
-  organization: organization._id,
-  details: `Organization ${organization.organizationName} updated`,
-});
+    // Create audit log
+    await AuditLog.create({
+      user: req.user.userId,
+      action: "UPDATE_ORGANIZATION",
+      organization: organization._id,
+      details: `Organization ${organization.organizationName} updated`
+    });
 
     res.json({
       success: true,
@@ -208,12 +216,15 @@ await AuditLog.create({
     });
 
   } catch (error) {
+    console.error(
+      "Update Organization Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
       message: error.message
     });
-
   }
 };
 
@@ -269,9 +280,9 @@ exports.deleteOrganization = async (req, res) => {
 };
 
 
-// ==========================================
+
 // GET PENDING ORGANIZATIONS
-// ==========================================
+
 
 exports.getPendingOrganizations = async (req, res) => {
   try {
@@ -305,9 +316,9 @@ exports.getPendingOrganizations = async (req, res) => {
 
 
 
-// ==========================================
+
 // APPROVE ORGANIZATION
-// ==========================================
+
 
 exports.approveOrganization = async (req, res) => {
   try {
@@ -361,9 +372,9 @@ exports.approveOrganization = async (req, res) => {
 };
 
 
-// ==========================================
+
 // REJECT ORGANIZATION
-// ==========================================
+
 
 exports.rejectOrganization = async (req, res) => {
   try {

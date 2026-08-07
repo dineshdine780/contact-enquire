@@ -1,9 +1,9 @@
 const Organization = require("../models/Organization");
 
 
-// ==========================================
+
 // GET ORGANIZATION PROFILE
-// ==========================================
+
 
 exports.getOrganizationProfile = async (req, res) => {
   try {

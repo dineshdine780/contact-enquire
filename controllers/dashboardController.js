@@ -9,6 +9,7 @@ const Organization = require("../models/Organization");
 
 exports.getOrganizationDashboard = async (req, res) => {
   try {
+
     // Get organization from logged-in user's JWT
     const organizationId = req.user.organizationId;
 
@@ -19,38 +20,84 @@ exports.getOrganizationDashboard = async (req, res) => {
       });
     }
 
-    // Total customers
+    
+    // CHECK ORGANIZATION
+    
+
+    const organization =
+      await Organization.findById(organizationId);
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    if (organization.status !== "Active") {
+      return res.status(403).json({
+        success: false,
+        message: "Organization is not active",
+      });
+    }
+
+
+    
+    // TOTAL CUSTOMERS
+    
+
     const totalCustomers =
       await Customer.countDocuments({
         organization: organizationId,
       });
 
-    // Total enquiries
+
+
+    // TOTAL ENQUIRIES
+   
+
     const totalEnquiries =
       await Contact.countDocuments({
         organization: organizationId,
       });
 
-    // Open enquiries
+
+   
+    // OPEN ENQUIRIES
+    
+
     const openEnquiries =
       await Contact.countDocuments({
         organization: organizationId,
         status: "Open",
       });
 
-    // Urgent enquiries
+
+    
+    // URGENT ENQUIRIES
+    
+
     const urgentCases =
       await Contact.countDocuments({
         organization: organizationId,
         priority: "Urgent",
       });
 
-    // Resolved enquiries
+
+    
+    // RESOLVED ENQUIRIES
+    
+
     const resolved =
       await Contact.countDocuments({
         organization: organizationId,
         status: "Resolved",
       });
+
+
+    
+    // RESPONSE
+    
 
     res.json({
       success: true,
@@ -65,6 +112,7 @@ exports.getOrganizationDashboard = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error(
       "Organization Dashboard Error:",
       error
@@ -80,9 +128,9 @@ exports.getOrganizationDashboard = async (req, res) => {
 
 
 
-// ==========================================
+
 // PLATFORM ADMIN DASHBOARD
-// ==========================================
+
 
 exports.getPlatformDashboard = async (req, res) => {
   try {

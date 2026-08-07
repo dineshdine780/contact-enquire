@@ -5,9 +5,9 @@ const User = require("../models/User");
 const Organization = require("../models/Organization");
 
 
-// ===============================
+
 // REGISTER USER
-// ===============================
+
 exports.register = async (req, res) => {
   try {
     const {
@@ -106,9 +106,9 @@ exports.register = async (req, res) => {
 };
 
 
-// ===============================
+
 // LOGIN USER
-// ===============================
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -186,10 +186,10 @@ exports.login = async (req, res) => {
 
 
 
-// ===============================
+
 // ASSIGN ORGANIZATION TO USER
 // Platform Admin only
-// ===============================
+
 exports.assignOrganization = async (req, res) => {
   try {
     const { userId, organizationId } = req.body;
@@ -258,6 +258,114 @@ exports.assignOrganization = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+};
+
+
+
+
+// CREATE ORGANIZATION ADMIN
+// Platform Admin only
+
+exports.createOrganizationAdmin = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      organization
+    } = req.body;
+
+    // Check required fields
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !organization
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Name, email, password and organization are required"
+      });
+    }
+
+    // Check organization exists
+    const existingOrganization =
+      await Organization.findById(organization);
+
+    if (!existingOrganization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found"
+      });
+    }
+
+    // Only active organizations can get an admin
+    if (existingOrganization.status !== "Active") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Organization must be approved before assigning an admin"
+      });
+    }
+
+    // Check existing user
+    const existingUser = await User.findOne({
+      email: email.toLowerCase()
+    });
+
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists"
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
+
+    // Create organization admin
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      role: "organization_admin",
+      organization: existingOrganization._id
+    });
+
+    // Return user
+    const createdUser = await User.findById(user._id)
+      .populate("organization");
+
+    res.status(201).json({
+      success: true,
+      message:
+        "Organization admin created successfully",
+
+      user: {
+        id: createdUser._id,
+        name: createdUser.name,
+        email: createdUser.email,
+        role: createdUser.role,
+        organization: createdUser.organization
+      }
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Create Organization Admin Error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
     });
   }
 };

@@ -20,7 +20,6 @@ router.get(
 );
 
 
-
 router.get(
   "/platform",
   authMiddleware,

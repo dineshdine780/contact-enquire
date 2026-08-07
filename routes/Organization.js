@@ -18,9 +18,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 
-// ==========================================
+
 // CREATE ORGANIZATION
-// ==========================================
+
 
 router.post(
   "/",
@@ -30,9 +30,9 @@ router.post(
 );
 
 
-// ==========================================
+
 // GET ALL ORGANIZATIONS
-// ==========================================
+
 
 router.get(
   "/",
@@ -42,10 +42,10 @@ router.get(
 );
 
 
-// ==========================================
+
 // GET PENDING ORGANIZATIONS
 // IMPORTANT: Must be BEFORE /:id
-// ==========================================
+
 
 router.get(
   "/pending",
@@ -55,10 +55,10 @@ router.get(
 );
 
 
-// ==========================================
+
 // APPROVE ORGANIZATION
 // IMPORTANT: Must be BEFORE /:id
-// ==========================================
+
 
 router.put(
   "/:id/approve",
@@ -68,10 +68,10 @@ router.put(
 );
 
 
-// ==========================================
+
 // REJECT ORGANIZATION
 // IMPORTANT: Must be BEFORE /:id
-// ==========================================
+
 
 router.put(
   "/:id/reject",
@@ -81,9 +81,8 @@ router.put(
 );
 
 
-// ==========================================
+
 // GET ORGANIZATION BY ID
-// ==========================================
 
 router.get(
   "/:id",
@@ -99,9 +98,8 @@ router.get(
   getPublicOrganization
 );
 
-// ==========================================
+
 // UPDATE ORGANIZATION
-// ==========================================
 
 router.put(
   "/:id",
@@ -111,9 +109,9 @@ router.put(
 );
 
 
-// ==========================================
+
 // DELETE ORGANIZATION
-// ==========================================
+
 
 router.delete(
   "/:id",

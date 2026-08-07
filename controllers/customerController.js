@@ -1,9 +1,9 @@
 const Customer = require("../models/Customer");
 
 
-// ==========================================
+
 // GET ORGANIZATION CUSTOMERS
-// ==========================================
+
 
 exports.getOrganizationCustomers = async (req, res) => {
   try {
@@ -47,9 +47,9 @@ exports.getOrganizationCustomers = async (req, res) => {
 };
 
 
-// ==========================================
+
 // CREATE CUSTOMER
-// ==========================================
+
 
 exports.createCustomer = async (req, res) => {
   try {
