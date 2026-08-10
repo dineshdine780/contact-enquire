@@ -1,8 +1,10 @@
 const Contact = require("../models/Contact");
 const Organization = require("../models/Organization");
-
+const Customer = require("../models/Customer");
 
 // Create enquiry
+// Create enquiry
+
 exports.createContact = async (req, res) => {
   try {
     console.log("BODY:", req.body);
@@ -14,160 +16,340 @@ exports.createContact = async (req, res) => {
       email,
       subject,
       message,
-      priority
+      priority,
     } = req.body;
 
+    // Check required fields
+
+    if (
+      !organization ||
+      !name ||        
+      !email ||       
+      !subject ||      
+      !message        
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Organization, name, email, subject and message are required",
+      });
+    }
 
     // Check organization
-    const org = await Organization.findById(organization);
+
+    const org = await Organization.findById(
+      organization
+    );
 
     if (!org) {
       return res.status(404).json({
         success: false,
-        message: "Organization not found"
+        message: "Organization not found",
       });
     }
 
+    // Clean customer data
+    const customerName = name.trim();
 
-    // Create contact
+    const customerEmail =
+      email.trim().toLowerCase();
+
+    // Create enquiry
     const contact = await Contact.create({
       organization: org._id,
-      name,
-      email,
-      subject,
-      message,
-      priority,
-      status: "Open",
-      attachment: req.file ? req.file.filename : ""
-    });
-
-
-    res.status(201).json({
-      success: true,
-      message: "Enquiry submitted successfully",
-      contact
-    });
-
-  } catch (error) {
-
-    console.error("CREATE CONTACT ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-
-  }
-};
-
-
-
-
-
-// Create enquiry from external website
-
-
-exports.createPublicContact = async (req, res) => {
-  try {
-    console.log("PUBLIC CONTACT BODY:", req.body);
-    console.log("PUBLIC CONTACT FILE:", req.file);
-
-    const { publicSlug } = req.params;
-
-    const {
-      name,
-      email,
-      subject,
-      message,
-      priority
-    } = req.body;
-
-
-    
-    // Validate required fields
-    
-
-    if (!name || !email || !subject || !message) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email, subject and message are required"
-      });
-    }
-
-
-    // -----------------------------
-    // Find organization
-    // -----------------------------
-
-    const organization = await Organization.findOne({
-      publicSlug: publicSlug.toLowerCase(),
-      status: "Active"
-    });
-
-
-    if (!organization) {
-      return res.status(404).json({
-        success: false,
-        message: "Organization not found or inactive"
-      });
-    }
-
-
-    // -----------------------------
-    // Create contact
-    // -----------------------------
-
-    const contact = await Contact.create({
-      organization: organization._id,
-
-      name: name.trim(),
-
-      email: email.trim().toLowerCase(),
-
+      name: customerName,
+      email: customerEmail,
       subject: subject.trim(),
-
       message: message.trim(),
-
       priority: priority || "Low",
-
       status: "Open",
-
       attachment: req.file
         ? req.file.filename
-        : ""
+        : "",
     });
 
+    // Find existing customer
+    let customer = await Customer.findOne({
+      organization: org._id,
+      email: customerEmail,
+    });
 
-    
+    // Existing customer
+    if (customer) {
+      customer.name = customerName;
+      customer.lastActivity = new Date();
+      customer.status = "Active";
+
+      if (!customer.tags.includes("New Lead")) {
+        customer.tags.push("New Lead");
+      }
+
+      await customer.save();
+
+      console.log(
+        "Existing customer updated:",
+        customer._id
+      );
+    }
+
+    // New customer
+    else {
+      customer = await Customer.create({
+        organization: org._id,
+        name: customerName,
+        email: customerEmail,
+        status: "Active",
+        lastActivity: new Date(),
+        tags: ["New Lead"],
+        points: 0,
+      });
+
+      console.log(
+        "New customer created:",
+        customer._id
+      );
+    }
+
     // Response
-    
-
     res.status(201).json({
       success: true,
-      message: "Enquiry submitted successfully",
-      contact
+      message:
+        "Enquiry submitted successfully",
+      contact,
+      customer,
     });
-
 
   } catch (error) {
 
     console.error(
-      "CREATE PUBLIC CONTACT ERROR:",
+      "CREATE CONTACT ERROR:",
       error
     );
 
     res.status(500).json({
       success: false,
-      message: "Failed to submit enquiry"
+      message: error.message,
     });
-
   }
 };
 
 
+// CREATE ENQUIRY FROM EXTERNAL WEBSITE
 
 
+exports.createPublicContact = async (req, res) => {
+  try {
+    console.log("========================================");
+    console.log("PUBLIC CONTACT REQUEST");
+    console.log("========================================");
 
+    console.log("PUBLIC CONTACT BODY:", req.body);
+    console.log("PUBLIC CONTACT FILE:", req.file);
+
+    const { publicSlug } = req.params;
+
+    const {    
+      name,     
+      email,     
+      subject,   
+      message,   
+      priority,  
+    } = req.body;
+    
+    
+    // VALIDATE REQUIRED FIELDS
+    
+
+    if (
+      !name ||
+      !email ||
+      !subject ||
+      !message
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Name, email, subject and message are required",
+      });
+    }
+
+    
+    // FIND ORGANIZATION
+   
+
+    const organization =
+      await Organization.findOne({
+        publicSlug: publicSlug.toLowerCase(),
+        status: "Active",
+      });
+
+    console.log(
+      "FOUND ORGANIZATION:",
+      organization
+    );
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Organization not found or inactive",
+      });
+    }
+
+    console.log(
+      "ORGANIZATION ID:",
+      organization._id
+    );
+
+    
+    // CLEAN DATA
+    
+
+    const customerName =
+      name.trim();
+
+    const customerEmail =
+      email.trim().toLowerCase();
+
+    
+    // CREATE ENQUIRY
+    
+
+    const contact =
+      await Contact.create({
+        organization:
+          organization._id,
+
+        name: customerName,
+
+        email: customerEmail,
+
+        subject: subject.trim(),
+
+        message: message.trim(),
+
+        priority:
+          priority || "Low",
+
+        status: "Open",
+
+        attachment: req.file
+          ? req.file.filename
+          : "",
+      });
+
+    console.log(
+      "CONTACT CREATED:",
+      contact._id
+    );
+
+    // ========================================
+    // FIND OR CREATE CUSTOMER
+    // ========================================
+
+    let customer =
+      await Customer.findOneAndUpdate(
+        {
+          organization:
+            organization._id,
+
+          email:
+            customerEmail,
+        },
+
+        {
+          $set: {
+            name: customerName,
+
+            lastActivity:
+              new Date(),
+
+            status: "Active",
+          },
+
+          $addToSet: {
+            tags: "New Lead",
+          },
+
+          $setOnInsert: {
+            organization:
+              organization._id,
+
+            email:
+              customerEmail,
+
+            points: 0,
+          },
+        },
+
+        {
+          new: true,
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+
+    console.log(
+      "CUSTOMER CREATED / UPDATED:"
+    );
+
+    console.log(
+      "CUSTOMER ID:",
+      customer._id
+    );
+
+    console.log(
+      "CUSTOMER ORGANIZATION:",
+      customer.organization
+    );
+
+    console.log(
+      "CUSTOMER EMAIL:",
+      customer.email 
+    );
+
+
+    // ========================================
+    // RESPONSE
+    // ========================================
+
+
+    return res.status(201).json({
+      success: true,
+
+      message:
+        "Enquiry submitted successfully",
+
+      contact,
+
+      customer,
+    });
+
+  } catch (error) { 
+    console.error(
+      "========================================"
+    );
+
+    console.error(
+      "CREATE PUBLIC CONTACT ERROR:"
+    );
+
+    console.error(error);
+
+    console.error(
+      "========================================"
+    );
+
+    return res.status(500).json({
+      success: false,
+
+      message:
+        error.message ||
+        "Failed to submit enquiry",
+    });
+  }
+};
 
 
 // GET ENQUIRIES BY LOGGED-IN ORGANIZATION
@@ -206,9 +388,6 @@ exports.getContactsByOrganization = async (req, res) => {
     });
   }
 };
-
-
-
 
 
 // GET SINGLE ENQUIRY

@@ -1,15 +1,89 @@
 const Customer = require("../models/Customer");
 
-
-
+// ========================================
 // GET ORGANIZATION CUSTOMERS
+// ========================================
+
+// exports.getOrganizationCustomers = async (req, res) => {
+//   try {
+//     // Get organization from JWT
+//     const organizationId =
+//       req.user?.organizationId;
+
+//     console.log(
+//       "CUSTOMER API - USER:",
+//       req.user
+//     );
+
+//     console.log(
+//       "CUSTOMER API - ORGANIZATION ID:",
+//       organizationId
+//     );
+
+//     // Check organization
+//     if (!organizationId) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "Organization not assigned",
+//       });
+//     }
+
+//     // Get customers belonging to
+//     // logged-in organization
+//     const customers = await Customer.find({
+//       organization: organizationId,
+//     })
+//       .select(
+//         "name email tags lastActivity status"
+//       )
+//       .sort({
+//         createdAt: -1,
+//       });
+
+//     console.log(
+//       "CUSTOMER API - CUSTOMERS:",
+//       customers
+//     );
+
+//     console.log(
+//       "CUSTOMER API - COUNT:",
+//       customers.length
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       customers,
+//     });
+
+//   } catch (error) {
+//     console.error(
+//       "GET ORGANIZATION CUSTOMERS ERROR:",
+//       error
+//     );
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//     });
+//   }
+// };
+
+
+// ========================================
+// GET ORGANIZATION CUSTOMERS              
+// ========================================
+
 
 
 exports.getOrganizationCustomers = async (req, res) => {
   try {
+    const organizationId =
+      req.user?.organizationId;
 
-    // Get organization from JWT
-    const organizationId = req.user.organizationId;
+    console.log(
+      "ORGANIZATION ID:",
+      organizationId
+    );
 
     if (!organizationId) {
       return res.status(403).json({
@@ -18,28 +92,35 @@ exports.getOrganizationCustomers = async (req, res) => {
       });
     }
 
+    const customers =
+      await Customer.find({
+        organization: organizationId,
+      }).sort({
+        createdAt: -1,
+      });
 
-    // Get customers belonging to logged-in organization
-    const customers = await Customer.find({
-      organization: organizationId,
-    })
-      .populate("organization", "organizationName")
-      .sort({ createdAt: -1 });
+    console.log(
+      "MATCHED CUSTOMERS:",
+      customers.length
+    );
 
+    console.log(
+      "MATCHED CUSTOMER DATA:",
+      customers
+    );
 
-    res.json({
+    return res.status(200).json({
       success: true,
       customers,
     });
 
   } catch (error) {
-
     console.error(
-      "Get Organization Customers Error:",
+      "GET ORGANIZATION CUSTOMERS ERROR:",
       error
     );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });
@@ -53,16 +134,21 @@ exports.getOrganizationCustomers = async (req, res) => {
 
 exports.createCustomer = async (req, res) => {
   try {
+    const organizationId =
+      req.user?.organizationId;
 
-    const organizationId = req.user.organizationId;
+    console.log(
+      "CREATE CUSTOMER - ORGANIZATION ID:",
+      organizationId
+    );
 
+    
     if (!organizationId) {
       return res.status(403).json({
         success: false,
         message: "Organization not assigned",
       });
     }
-
 
     const {
       name,
@@ -72,76 +158,40 @@ exports.createCustomer = async (req, res) => {
       status,
     } = req.body;
 
-
+    
     if (!name) {
       return res.status(400).json({
         success: false,
-        message: "Customer name is required",
+        message:
+          "Customer name is required",
       });
     }
 
+    
+    const customer =
+      await Customer.create({
+        organization: organizationId,
+        name,
+        email,
+        phone,
+        company,
+        status: status || "Active",
+      });
 
-    const customer = await Customer.create({
-      organization: organizationId,
-      name,
-      email,
-      phone,
-      company,
-      status,
-    });
-
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "Customer created successfully",
+      message:
+        "Customer created successfully",
       customer,
     });
 
   } catch (error) {
-
     console.error(
-      "Create Customer Error:",
+      "CREATE CUSTOMER ERROR:",
       error
     );
 
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
-
-
-exports.getCustomersByOrganization = async (req, res) => {
-  try {
-    const organizationId = req.user.organizationId;
-
-    if (!organizationId) {
-      return res.status(400).json({
-        success: false,
-        message: "Organization not assigned to user",
-      });
-    }
-
-    const customers = await Customer.find({
-      organization: organizationId,
-    }).populate(
-      "organization",
-      "organizationName"
-    );
-
-    res.json({
-      success: true,
-      customers,
-    });
-
-  } catch (error) {
-    console.error(
-      "Get Organization Customers Error:",
-      error
-    );
-
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });

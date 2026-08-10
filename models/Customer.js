@@ -33,8 +33,27 @@ const customerSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Active", "Inactive"],
+      enum: [
+        "Active",
+        "Inactive",
+        "Follow-up",
+      ],
       default: "Active",
+    },
+
+    lastActivity: {  
+      type: Date,
+      default: Date.now, 
+    },
+
+    tags: { 
+      type: [String],
+      default: [],
+    },
+
+    points: {
+      type: Number,
+      default: 0,
     },
   },
   {
@@ -42,7 +61,9 @@ const customerSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model(
-  "Customer",
-  customerSchema
-);
+
+module.exports =
+  mongoose.model(
+    "Customer",
+    customerSchema
+  );

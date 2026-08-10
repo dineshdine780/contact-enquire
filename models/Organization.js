@@ -59,9 +59,8 @@ const organizationSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: ""
-    },
-
-    // Public website identifier
+    },           
+    
     publicSlug: {
       type: String,
       required: true,
@@ -76,9 +75,12 @@ const organizationSchema = new mongoose.Schema(
       default: "Pending"
     }
   },
+   
+   
   {
     timestamps: true
   }
+  
 );
 
 module.exports = mongoose.model(
