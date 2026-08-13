@@ -1,12 +1,16 @@
 const svgCaptcha = require("svg-captcha");
 
+
 // ========================================
 // GENERATE CAPTCHA
 // ========================================
 
 exports.generateCaptcha = async (req, res) => {
+
   try {
+
     const captcha = svgCaptcha.create({
+
       size: 5,
 
       noise: 2,
@@ -22,16 +26,56 @@ exports.generateCaptcha = async (req, res) => {
       width: 180,
 
       height: 60,
+
     });
 
-    // Store CAPTCHA answer in session
-    // We will use session in the next step
 
-    req.session.captcha = captcha.text;
+    // ========================================
+    // STORE CAPTCHA IN SESSION
+    // ========================================
 
-    return res.status(200).json({
-      success: true,
-      captcha: captcha.data,
+    req.session.captcha =
+      captcha.text;
+
+
+    // ========================================
+    // SAVE SESSION
+    // ========================================
+
+    req.session.save((error) => {
+
+      if (error) {
+
+        console.error(
+          "CAPTCHA SESSION SAVE ERROR:",
+          error
+        );
+
+        return res.status(500).json({
+
+          success: false,
+
+          message:
+            "Failed to save CAPTCHA session",
+
+        });
+
+      }
+
+
+      // ========================================
+      // RESPONSE
+      // ========================================
+
+      return res.status(200).json({
+
+        success: true,
+
+        captcha:
+          captcha.data,
+
+      });
+
     });
 
   } catch (error) {
@@ -42,8 +86,14 @@ exports.generateCaptcha = async (req, res) => {
     );
 
     return res.status(500).json({
+
       success: false,
-      message: "Failed to generate CAPTCHA",
+
+      message:
+        "Failed to generate CAPTCHA",
+
     });
+
   }
+
 };

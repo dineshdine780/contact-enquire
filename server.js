@@ -19,6 +19,8 @@ dotenv.config();
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // Connect MongoDB
 connectDB();
 
@@ -32,15 +34,16 @@ app.use(
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+
   process.env.ADMIN_FRONTEND_URL,
   process.env.CONTACT_FRONTEND_URL,
-];
+].filter(Boolean);
 
 app.use(
   cors({
     origin: function (origin, callback) {
 
-      // Allow Postman / requests without origin
+      // Allow Postman / server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
@@ -48,6 +51,8 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+
+      console.log("CORS BLOCKED:", origin);
 
       return callback(
         new Error("Not allowed by CORS")
@@ -69,14 +74,6 @@ app.use(
 app.use(express.json());
 
 
-// Test route
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Enquiry Platform Backend Running"
-  });
-});
-
 
 app.use(
   session({
@@ -86,13 +83,30 @@ app.use(
 
     resave: false,
 
-    saveUninitialized: true,
+    saveUninitialized: false,
 
     cookie: {
       maxAge: 10 * 60 * 1000,
+
+      httpOnly: true,
+
+      secure: process.env.NODE_ENV === "production",
+
+      sameSite:
+        process.env.NODE_ENV === "production"
+          ? "none"
+          : "lax",
     },
   })
 );
+
+// Test route
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Enquiry Platform Backend Running"
+  });
+});
 
 
 app.use("/api/organizations",organizationRoutes);               
