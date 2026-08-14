@@ -137,9 +137,7 @@ exports.createContact = async (req, res) => {
 
 // CREATE ENQUIRY FROM EXTERNAL WEBSITE
 
-// ========================================
-// CREATE ENQUIRY FROM EXTERNAL WEBSITE
-// ========================================
+
 
 exports.createPublicContact = async (req, res) => {
 
@@ -156,9 +154,8 @@ exports.createPublicContact = async (req, res) => {
     console.log(
       "========================================"
     );
-
-
-    console.log(
+                
+    console.log(   
       "PUBLIC CONTACT BODY:",
       req.body
     );
@@ -184,9 +181,8 @@ exports.createPublicContact = async (req, res) => {
     } = req.body;
 
 
-    // ========================================
     // CAPTCHA VALIDATION
-    // ========================================
+    
 
     if (!captchaAnswer) {
 
@@ -202,9 +198,9 @@ exports.createPublicContact = async (req, res) => {
     }
 
 
-    // ========================================
+    
     // GET CAPTCHA FROM SESSION
-    // ========================================
+    
 
     const correctCaptcha =
       req.session?.captcha;
@@ -224,9 +220,9 @@ exports.createPublicContact = async (req, res) => {
     }
 
 
-    // ========================================
+    
     // COMPARE CAPTCHA
-    // ========================================
+    
 
     if (
       captchaAnswer
@@ -249,16 +245,15 @@ exports.createPublicContact = async (req, res) => {
     }
 
 
-    // ========================================
+
     // REMOVE CAPTCHA AFTER VERIFICATION
-    // ========================================
+    
 
     delete req.session.captcha;
 
 
-    // ========================================
     // VALIDATE REQUIRED FIELDS
-    // ========================================
+
 
     if (
       !name ||
@@ -279,9 +274,9 @@ exports.createPublicContact = async (req, res) => {
     }
 
 
-    // ========================================
+ 
     // FIND ORGANIZATION
-    // ========================================
+  
 
     const organization =
       await Organization.findOne({
@@ -320,12 +315,11 @@ exports.createPublicContact = async (req, res) => {
     );
 
 
-    // ========================================
+    
     // CLEAN DATA
-    // ========================================
+    
 
-    const customerName =
-      name.trim();
+    const customerName = name.trim();
 
 
     const customerEmail =
@@ -333,13 +327,10 @@ exports.createPublicContact = async (req, res) => {
         .trim()
         .toLowerCase();
 
-
-    // ========================================
+    
     // CREATE ENQUIRY
-    // ========================================
 
-    const contact =
-      await Contact.create({
+    const contact = await Contact.create({
 
         organization:
           organization._id,
@@ -376,10 +367,9 @@ exports.createPublicContact = async (req, res) => {
     );
 
 
-    // ========================================
+    
     // FIND OR CREATE CUSTOMER
-    // ========================================
-
+    
     let customer =
       await Customer.findOneAndUpdate(
 
@@ -468,9 +458,9 @@ exports.createPublicContact = async (req, res) => {
     );
 
 
-    // ========================================
+    
     // RESPONSE
-    // ========================================
+    
 
     return res.status(201).json({
 
@@ -727,7 +717,7 @@ exports.createPublicContact = async (req, res) => {
 // };
 
 
-// GET ENQUIRIES BY LOGGED-IN ORGANIZATION
+// GET ENQUIRIES BY LOGGED-IN ORGANIZATION 
 
 
 exports.getContactsByOrganization = async (req, res) => {
@@ -765,7 +755,6 @@ exports.getContactsByOrganization = async (req, res) => {
 };
 
 
-// GET SINGLE ENQUIRY
 // Organization Admin only
 
 
@@ -893,8 +882,6 @@ exports.updateContactStatus = async (req, res) => {
 };
 
 
-
-
 // UPDATE ENQUIRY
 
 
@@ -964,7 +951,8 @@ exports.updateContact = async (req, res) => {
         message: "Enquiry not found",
       });
     }
-
+     
+    
     
     if (priority) {
       enquiry.priority = priority;
@@ -993,4 +981,5 @@ exports.updateContact = async (req, res) => {
       message: "Server error",
     });
   }
-};
+};  
+

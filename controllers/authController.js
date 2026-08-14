@@ -16,7 +16,55 @@ exports.register = async (req, res) => {
       password,
       role,
       organization,
+      captchaAnswer,
     } = req.body;
+
+    // ========================================
+// ADMIN CAPTCHA VALIDATION
+// ========================================
+
+if (role === "platform_admin") {
+
+  if (!captchaAnswer) {
+
+    return res.status(400).json({
+      success: false,
+      message: "CAPTCHA is required",
+    });
+
+  }
+
+  const correctCaptcha =
+    req.session?.adminCaptcha;
+
+  if (!correctCaptcha) {
+
+    return res.status(400).json({
+      success: false,
+      message:
+        "CAPTCHA expired. Please refresh the CAPTCHA.",
+    });
+
+  }
+
+  if (
+    captchaAnswer.trim().toLowerCase() !==
+    correctCaptcha.trim().toLowerCase()
+  ) {
+
+    return res.status(400).json({
+      success: false,
+      message:
+        "Incorrect CAPTCHA. Please try again.",
+    });
+
+  }
+
+  // Remove CAPTCHA after successful validation
+
+  delete req.session.adminCaptcha;
+
+}
 
     // Check required fields
     if (!name || !email || !password || !role) {
@@ -107,83 +155,223 @@ exports.register = async (req, res) => {
 
 
 
-// LOGIN USER
-
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
 
-    // Check fields
+    const {
+      email,
+      password,
+      captchaAnswer
+    } = req.body;
+
+
+    // ========================================
+    // CHECK REQUIRED FIELDS
+    // ========================================
+
     if (!email || !password) {
+
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
       });
+
     }
 
-    // Find user
+
+    // ========================================
+    // CAPTCHA REQUIRED
+    // ========================================
+
+    if (!captchaAnswer) {
+
+      return res.status(400).json({
+        success: false,
+        message: "CAPTCHA is required",
+      });
+
+    }
+
+
+    // ========================================
+    // FIND USER
+    // ========================================
+
     const user = await User.findOne({
       email: email.toLowerCase(),
     }).populate("organization");
 
+
     if (!user) {
+
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
+
     }
 
-    // Compare password
+
+    // ========================================
+    // SELECT CAPTCHA BASED ON USER ROLE
+    // ========================================
+
+    let correctCaptcha;
+
+
+    if (user.role === "platform_admin") {
+
+      correctCaptcha =
+        req.session?.adminCaptcha;
+
+    } else if (
+      user.role === "organization_admin"
+    ) {
+
+      correctCaptcha =
+        req.session?.captcha;
+
+    }
+
+
+    // ========================================
+    // CAPTCHA SESSION CHECK
+    // ========================================
+
+    if (!correctCaptcha) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "CAPTCHA expired. Please refresh the CAPTCHA.",
+      });
+
+    }
+
+
+    // ========================================
+    // CAPTCHA VALIDATION
+    // ========================================
+
+    if (
+      captchaAnswer.trim().toLowerCase() !==
+      correctCaptcha.trim().toLowerCase()
+    ) {
+
+      return res.status(400).json({
+        success: false,
+        message:
+          "Incorrect CAPTCHA. Please try again.",
+      });
+
+    }
+
+
+    // ========================================
+    // DELETE USED CAPTCHA
+    // ========================================
+
+    if (user.role === "platform_admin") {
+
+      delete req.session.adminCaptcha;
+
+    } else if (
+      user.role === "organization_admin"
+    ) {
+
+      delete req.session.captcha;
+
+    }
+
+
+    // ========================================
+    // PASSWORD CHECK
+    // ========================================
+
     const isMatch = await bcrypt.compare(
       password,
       user.password
     );
 
+
     if (!isMatch) {
+
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
+
     }
 
-    // Create JWT
+
+    // ========================================
+    // CREATE JWT
+    // ========================================
+
     const token = jwt.sign(
       {
         userId: user._id,
+
         role: user.role,
-        organizationId: user.organization?._id || null,
+
+        organizationId:
+          user.organization?._id || null,
       },
+
       process.env.JWT_SECRET,
+
       {
         expiresIn: "1d",
       }
     );
 
+
+    // ========================================
+    // RESPONSE
+    // ========================================
+
     res.json({
+
       success: true,
+
       message: "Login successful",
 
       token,
 
       user: {
+
         id: user._id,
+
         name: user.name,
+
         email: user.email,
+
         role: user.role,
-        organization: user.organization,
+
+        organization:
+          user.organization,
+
       },
+
     });
 
   } catch (error) {
-    console.error("Login Error:", error);
+
+    console.error(
+      "Login Error:",
+      error
+    );
 
     res.status(500).json({
+
       success: false,
+
       message: "Server error",
+
     });
+
   }
 };
-
 
 
 

@@ -4,6 +4,7 @@ const router = express.Router();
 
 const {
   generateCaptcha,
+  generateAdminCaptcha,
 } = require("../controllers/captchaController");
 
 
@@ -14,6 +15,11 @@ const {
 router.get(
   "/generate",
   generateCaptcha
+);
+
+router.get(
+  "/admin/generate",
+  generateAdminCaptcha
 );
 
 
