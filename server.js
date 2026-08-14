@@ -36,6 +36,7 @@ const allowedOrigins = [
   "http://localhost:3001",
 
   process.env.ADMIN_FRONTEND_URL,
+  process.env.ORGANIZATION_FRONTEND_URL,
   process.env.CONTACT_FRONTEND_URL,
 ].filter(Boolean);
 
