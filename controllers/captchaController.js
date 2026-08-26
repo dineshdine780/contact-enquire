@@ -1,46 +1,34 @@
 const svgCaptcha = require("svg-captcha");
 
 
-// ========================================
 // GENERATE CAPTCHA
-// ========================================
+
 
 exports.generateCaptcha = async (req, res) => {
 
   try {
 
     const captcha = svgCaptcha.create({
-
       size: 5,
-
       noise: 2,
-
       color: true,
-
       background: "#f3f4f6",
-
       ignoreChars: "0o1il",
-
       fontSize: 60,
-
       width: 180,
-
       height: 60,
-
     });
 
-
-    // ========================================
+  
     // STORE CAPTCHA IN SESSION
-    // ========================================
+
 
     req.session.captcha =
       captcha.text;
 
 
-    // ========================================
     // SAVE SESSION
-    // ========================================
+  
 
     req.session.save((error) => {
 
@@ -63,17 +51,13 @@ exports.generateCaptcha = async (req, res) => {
       }
 
 
-      // ========================================
       // RESPONSE
-      // ========================================
+  
 
       return res.status(200).json({
-
         success: true,
-
         captcha:
           captcha.data,
-
       });
 
     });
@@ -86,12 +70,9 @@ exports.generateCaptcha = async (req, res) => {
     );
 
     return res.status(500).json({
-
       success: false,
-
       message:
         "Failed to generate CAPTCHA",
-
     });
 
   }
@@ -103,38 +84,25 @@ exports.generateCaptcha = async (req, res) => {
 
 // GENERATE ADMIN CAPTCHA
 
-// ========================================
-// GENERATE ADMIN CAPTCHA
-// ========================================
 
 exports.generateAdminCaptcha = async (req, res) => {
 
   try {
 
     const captcha = svgCaptcha.create({
-
       size: 5,
-
       noise: 2,
-
       color: true,
-
       background: "#f3f4f6",
-
       ignoreChars: "0o1il",
-
       fontSize: 60,
-
       width: 180,
-
       height: 60,
 
     });
-
-
-    // ========================================
+    
     // STORE ADMIN CAPTCHA IN SESSION
-    // ========================================
+   
 
     req.session.adminCaptcha =
       captcha.text;
@@ -145,10 +113,8 @@ exports.generateAdminCaptcha = async (req, res) => {
       captcha.text
     );
 
-
-    // ========================================
     // SAVE SESSION
-    // ========================================
+  
 
     req.session.save((error) => {
 
@@ -169,11 +135,9 @@ exports.generateAdminCaptcha = async (req, res) => {
         });
 
       }
-
-
-      // ========================================
+     
       // RESPONSE
-      // ========================================
+   
 
       return res.status(200).json({
 

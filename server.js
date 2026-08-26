@@ -5,6 +5,7 @@ const path = require("path");
 const connectDB = require("./config/db");
 const session = require("express-session");
 
+
 const organizationRoutes = require("./routes/Organization.js");
 const contactRoutes = require("./routes/contactRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -15,6 +16,7 @@ const organizationProfileRoutes = require("./routes/organizationProfileRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
 const captchaRoutes =require("./routes/captchaRoutes");
 
+
 dotenv.config();
 
 const app = express();
@@ -22,6 +24,7 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Connect MongoDB
+
 connectDB();
 
 app.use(
@@ -29,22 +32,23 @@ app.use(
     express.static(path.join(__dirname,"uploads"))
 );
 
+// Middleware 
 
-// Middleware
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:3002",
 
   process.env.ADMIN_FRONTEND_URL,
   process.env.ORGANIZATION_FRONTEND_URL,
   process.env.CONTACT_FRONTEND_URL,
 ].filter(Boolean);
 
+
 app.use(
   cors({
     origin: function (origin, callback) {
-
-      // Allow Postman / server-to-server requests
+      
       if (!origin) {
         return callback(null, true);
       }
@@ -60,21 +64,19 @@ app.use(
       );
     },
 
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "OPTIONS",
-    ],
+    methods: [   
+      "GET",     
+      "POST",    
+      "PUT",      
+      "DELETE",   
+      "OPTIONS",  
+    ],      
 
     credentials: true,
   })
 );
 
 app.use(express.json());
-
-
 
 app.use(
   session({
@@ -88,28 +90,29 @@ app.use(
 
     cookie: {
       maxAge: 10 * 60 * 1000,
-
-      httpOnly: true,
-
+                              
+      httpOnly: true,        
+                             
       secure: process.env.NODE_ENV === "production",
-
-      sameSite:
+                             
+      sameSite:               
         process.env.NODE_ENV === "production"
-          ? "none"
-          : "lax",
-    },
-  })
-);
-
-// Test route
+          ? "none"            
+          : "lax",           
+    },                       
+  })                         
+);                           
+                             
+// Test route                
+                            
 app.get("/", (req, res) => {
-  res.json({
-    success: true,
+  res.json({                
+    success: true,          
     message: "Enquiry Platform Backend Running"
-  });
-});
-
-
+  });                       
+});                         
+                            
+                             
 app.use("/api/organizations",organizationRoutes);               
 app.use("/api/contact", contactRoutes);                         
 app.use("/api/auth", authRoutes);                               
@@ -120,10 +123,11 @@ app.use("/api/organization-profile", organizationProfileRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/captcha",captchaRoutes); 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; 
 
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 

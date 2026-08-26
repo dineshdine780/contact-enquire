@@ -8,9 +8,9 @@ const {
 } = require("../controllers/captchaController");
 
 
-// ========================================
+
 // GENERATE CAPTCHA
-// ========================================
+
 
 router.get(
   "/generate",

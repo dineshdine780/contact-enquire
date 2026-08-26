@@ -84,18 +84,20 @@ router.put(
 
 // GET ORGANIZATION BY ID
 
+
+router.get(
+  "/public/:publicSlug",
+  getPublicOrganization
+);
+
+
+
+
 router.get(
   "/:id",
   authMiddleware,
   roleMiddleware("platform_admin"),
   getOrganization
-);
-
-
-
-router.get(
-  "/public/:publicSlug",
-  getPublicOrganization
 );
 
 

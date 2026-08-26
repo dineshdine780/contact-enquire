@@ -19,9 +19,9 @@ exports.register = async (req, res) => {
       captchaAnswer,
     } = req.body;
 
-    // ========================================
+
 // ADMIN CAPTCHA VALIDATION
-// ========================================
+
 
 if (role === "platform_admin") {
 
@@ -225,7 +225,8 @@ exports.login = async (req, res) => {
         req.session?.adminCaptcha;
 
     } else if (
-      user.role === "organization_admin"
+      user.role === "organization_admin" ||
+      user.role === "organization_user"
     ) {
 
       correctCaptcha =
@@ -276,7 +277,8 @@ exports.login = async (req, res) => {
       delete req.session.adminCaptcha;
 
     } else if (
-      user.role === "organization_admin"
+      user.role === "organization_admin" ||
+      user.role === "organization_user"
     ) {
 
       delete req.session.captcha;
@@ -305,10 +307,45 @@ exports.login = async (req, res) => {
 
 
     // ========================================
+    // ORGANIZATION USER VALIDATION
+    // ========================================
+
+    if (
+      user.role === "organization_admin" ||
+      user.role === "organization_user"
+    ) {
+
+      if (!user.organization) {
+
+        return res.status(403).json({
+          success: false,
+          message:
+            "User is not assigned to an organization",
+        });
+
+      }
+
+      if (
+        user.organization.status !== "Active"
+      ) {
+
+        return res.status(403).json({
+          success: false,
+          message:
+            "Organization is not active",
+        });
+
+      }
+
+    }
+
+
+    // ========================================
     // CREATE JWT
     // ========================================
 
     const token = jwt.sign(
+
       {
         userId: user._id,
 
@@ -323,6 +360,7 @@ exports.login = async (req, res) => {
       {
         expiresIn: "1d",
       }
+
     );
 
 
@@ -354,6 +392,7 @@ exports.login = async (req, res) => {
       },
 
     });
+
 
   } catch (error) {
 

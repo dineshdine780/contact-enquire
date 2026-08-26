@@ -168,8 +168,74 @@ exports.getOrganization = async (req, res) => {
 
 
 // Update Organization
+// exports.updateOrganization = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+
+//     const {
+//       organizationName,
+//       type,
+//       website,
+//       status
+//     } = req.body;
+
+//     const organization =
+//       await Organization.findByIdAndUpdate(
+//         id,
+//         {
+//           organizationName,
+//           type,
+//           website,
+//           status
+//         },
+//         {
+//           new: true,
+//           runValidators: true
+//         }
+//       );
+
+//     if (!organization) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Organization not found"
+//       });
+//     }
+
+//     // Create audit log
+//     await AuditLog.create({
+//       user: req.user.userId,
+//       action: "UPDATE_ORGANIZATION",
+//       organization: organization._id,
+//       details: `Organization ${organization.organizationName} updated`
+//     });
+
+//     res.json({
+//       success: true,
+//       message: "Organization updated successfully",
+//       organization
+//     });
+
+//   } catch (error) {
+//     console.error(
+//       "Update Organization Error:",
+//       error
+//     );
+
+//     res.status(500).json({
+//       success: false,
+//       message: error.message
+//     });
+//   }
+// };
+
+
+// ==========================================
+// UPDATE ORGANIZATION
+// ==========================================
+
 exports.updateOrganization = async (req, res) => {
   try {
+
     const { id } = req.params;
 
     const {
@@ -179,52 +245,172 @@ exports.updateOrganization = async (req, res) => {
       status
     } = req.body;
 
-    const organization =
-      await Organization.findByIdAndUpdate(
-        id,
-        {
-          organizationName,
-          type,
-          website,
-          status
-        },
-        {
-          new: true,
-          runValidators: true
-        }
-      );
 
-    if (!organization) {
+    // ==========================================
+    // REQUIRED FIELDS
+    // ==========================================
+
+    if (!organizationName || !type) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name and type are required"
+      });
+    }
+
+
+    // ==========================================
+    // FIND ORGANIZATION
+    // ==========================================
+
+    const existingOrganization =
+      await Organization.findById(id);
+
+
+    if (!existingOrganization) {
       return res.status(404).json({
         success: false,
         message: "Organization not found"
       });
     }
 
-    // Create audit log
+
+    // ==========================================
+    // CHECK ORGANIZATION NAME
+    // ==========================================
+
+    const duplicateOrganization =
+      await Organization.findOne({
+        organizationName,
+        _id: { $ne: id }
+      });
+
+
+    if (duplicateOrganization) {
+      return res.status(400).json({
+        success: false,
+        message: "Organization name already exists"
+      });
+    }
+
+
+    // ==========================================
+    // CREATE PUBLIC SLUG
+    // ==========================================
+
+    let publicSlug =
+      existingOrganization.publicSlug;
+
+
+    // Only create new slug if name changed
+
+    if (
+      existingOrganization.organizationName !==
+      organizationName
+    ) {
+
+      publicSlug = organizationName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+
+      // ========================================
+      // CHECK SLUG ALREADY EXISTS
+      // ========================================
+
+      const existingSlug =
+        await Organization.findOne({
+          publicSlug,
+          _id: { $ne: id }
+        });
+
+
+      if (existingSlug) {
+
+        publicSlug =
+          `${publicSlug}-${Date.now()}`;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // UPDATE ORGANIZATION
+    // ==========================================
+
+    existingOrganization.organizationName =
+      organizationName;
+
+    existingOrganization.type =
+      type;
+
+    existingOrganization.website =
+      website;
+
+    existingOrganization.status =
+      status;
+
+    existingOrganization.publicSlug =
+      publicSlug;
+
+
+    await existingOrganization.save();
+
+
+    // ==========================================
+    // CREATE AUDIT LOG
+    // ==========================================
+
     await AuditLog.create({
+
       user: req.user.userId,
+
       action: "UPDATE_ORGANIZATION",
-      organization: organization._id,
-      details: `Organization ${organization.organizationName} updated`
+
+      organization:
+        existingOrganization._id,
+
+      details:
+        `Organization ${existingOrganization.organizationName} updated`
+
     });
+
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
 
     res.json({
+
       success: true,
-      message: "Organization updated successfully",
-      organization
+
+      message:
+        "Organization updated successfully",
+
+      organization:
+        existingOrganization
+
     });
 
+
   } catch (error) {
+
     console.error(
       "Update Organization Error:",
       error
     );
 
+
     res.status(500).json({
+
       success: false,
+
       message: error.message
+
     });
+
   }
 };
 

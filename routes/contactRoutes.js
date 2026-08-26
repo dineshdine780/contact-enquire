@@ -37,7 +37,7 @@ router.post(
 router.get(
   "/organization",
   authMiddleware,
-  roleMiddleware("organization_admin"),
+  roleMiddleware("organization_admin", "organization_user"),
   getContactsByOrganization
 );
 

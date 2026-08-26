@@ -11,9 +11,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 
-// ========================================
 // GET ORGANIZATION CUSTOMERS
-// ========================================
 
 router.get(
   "/organization",
@@ -23,9 +21,8 @@ router.get(
 );
 
 
-// ========================================
 // CREATE CUSTOMER
-// ========================================
+
 
 router.post(
   "/",
