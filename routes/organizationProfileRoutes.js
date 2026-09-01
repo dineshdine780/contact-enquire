@@ -10,9 +10,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 
-
 // GET ORGANIZATION PROFILE
-
 
 router.get(
   "/",

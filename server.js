@@ -15,7 +15,7 @@ const userRoutes = require("./routes/userRoutes");
 const organizationProfileRoutes = require("./routes/organizationProfileRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
 const captchaRoutes =require("./routes/captchaRoutes");
-
+const settingsRoutes = require("./routes/settingsRoutes");
 
 dotenv.config();
 
@@ -122,6 +122,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/organization-profile", organizationProfileRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/captcha",captchaRoutes); 
+app.use("/api/settings", settingsRoutes);
 
 const PORT = process.env.PORT || 5000; 
 

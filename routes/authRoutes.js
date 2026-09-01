@@ -1,3 +1,68 @@
+// const express = require("express");
+
+// const router = express.Router();
+
+// const {
+//   register,
+//   login,
+//   assignOrganization,
+//   createOrganizationAdmin
+// } = require("../controllers/authController");
+
+// const authMiddleware = require("../middleware/authMiddleware");
+// const roleMiddleware = require("../middleware/roleMiddleware");
+
+
+
+// // REGISTER
+
+
+// router.post(
+//   "/register",
+//   register
+// );
+
+
+
+// // LOGIN
+
+
+// router.post(
+//   "/login",
+//   login
+// );
+
+
+
+// // ASSIGN ORGANIZATION
+// // Platform Admin only
+
+
+// router.put(
+//   "/assign-organization",
+//   authMiddleware,
+//   roleMiddleware("platform_admin"),
+//   assignOrganization
+// );
+
+
+
+// // CREATE ORGANIZATION ADMIN
+// // Platform Admin only
+
+
+// router.post(
+//   "/organization-admin",
+//   authMiddleware,
+//   roleMiddleware("platform_admin"),
+//   createOrganizationAdmin
+// );
+
+
+// module.exports = router;
+
+
+
 const express = require("express");
 
 const router = express.Router();
@@ -9,13 +74,18 @@ const {
   createOrganizationAdmin
 } = require("../controllers/authController");
 
+const {
+  generateCaptcha,
+  generateAdminCaptcha
+} = require("../controllers/captchaController");
+
 const authMiddleware = require("../middleware/authMiddleware");
+
 const roleMiddleware = require("../middleware/roleMiddleware");
 
 
 
 // REGISTER
-
 
 router.post(
   "/register",
@@ -26,7 +96,6 @@ router.post(
 
 // LOGIN
 
-
 router.post(
   "/login",
   login
@@ -34,9 +103,26 @@ router.post(
 
 
 
+// CAPTCHA
+
+router.get(
+  "/captcha",
+  generateCaptcha
+);
+
+
+
+// ADMIN CAPTCHA
+
+router.get(
+  "/admin-captcha",
+  generateAdminCaptcha
+);
+
+
+
 // ASSIGN ORGANIZATION
 // Platform Admin only
-
 
 router.put(
   "/assign-organization",
@@ -49,7 +135,6 @@ router.put(
 
 // CREATE ORGANIZATION ADMIN
 // Platform Admin only
-
 
 router.post(
   "/organization-admin",

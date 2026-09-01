@@ -11,7 +11,8 @@ const {
   getPendingOrganizations,
   approveOrganization,
   rejectOrganization,
-  getPublicOrganization
+  getPublicOrganization,
+  updateOrganizationTheme
 } = require("../controllers/organizationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -30,7 +31,6 @@ router.post(
 );
 
 
-
 // GET ALL ORGANIZATIONS
 
 
@@ -40,7 +40,6 @@ router.get(
   roleMiddleware("platform_admin"),
   getOrganizations
 );
-
 
 
 // GET PENDING ORGANIZATIONS
@@ -55,7 +54,6 @@ router.get(
 );
 
 
-
 // APPROVE ORGANIZATION
 // IMPORTANT: Must be BEFORE /:id
 
@@ -66,7 +64,6 @@ router.put(
   roleMiddleware("platform_admin"),
   approveOrganization
 );
-
 
 
 // REJECT ORGANIZATION
@@ -81,7 +78,6 @@ router.put(
 );
 
 
-
 // GET ORGANIZATION BY ID
 
 
@@ -91,6 +87,12 @@ router.get(
 );
 
 
+router.put(
+  "/:id/theme",
+  authMiddleware,
+  roleMiddleware("platform_admin"),
+  updateOrganizationTheme
+);
 
 
 router.get(
@@ -111,7 +113,6 @@ router.put(
 );
 
 
-
 // DELETE ORGANIZATION
 
 
@@ -121,9 +122,6 @@ router.delete(
   roleMiddleware("platform_admin"),
   deleteOrganization
 );
-
-
-
 
 
 module.exports = router;

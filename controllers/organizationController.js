@@ -8,7 +8,8 @@ exports.createOrganization = async (req, res) => {
     const {
       organizationName,
       type,
-      website
+      website,
+      theme
     } = req.body;
 
 
@@ -68,18 +69,31 @@ exports.createOrganization = async (req, res) => {
     // CREATE ORGANIZATION
     
 
-    const organization =
-      await Organization.create({
+    const organization = await Organization.create({
+  organizationName,
+  type,
+  website: website || "",
+  publicSlug,
 
-        organizationName,
+  theme: {
+    primaryColor:
+      theme?.primaryColor || "#2563eb",
 
-        type,
+    secondaryColor:
+      theme?.secondaryColor || "#f4f6f8",
 
-        website,
+    fontFamily:
+      theme?.fontFamily || "Arial",
 
-        publicSlug
+    buttonRadius:
+      theme?.buttonRadius || "6px",
 
-      });
+    cardRadius:
+      theme?.cardRadius || "12px",
+  },
+
+  customCSS: "",
+});
 
 
     res.status(201).json({
@@ -350,7 +364,7 @@ exports.updateOrganization = async (req, res) => {
       website;
 
     existingOrganization.status =
-      status;
+  status || existingOrganization.status;
 
     existingOrganization.publicSlug =
       publicSlug;
@@ -631,7 +645,7 @@ exports.getPublicOrganization = async (req, res) => {
         publicSlug: publicSlug.toLowerCase(),
         status: "Active"
       }).select(
-        "_id organizationName type website publicSlug status"
+           "_id organizationName type website publicSlug status theme customCSS"
       );
 
 
@@ -661,5 +675,133 @@ exports.getPublicOrganization = async (req, res) => {
       message: error.message
     });
 
+  }
+};
+
+
+
+// UPDATE ORGANIZATION THEME
+
+// ==========================================
+// UPDATE ORGANIZATION THEME + CUSTOM CSS
+// ==========================================
+
+exports.updateOrganizationTheme = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      primaryColor,
+      secondaryColor,
+      fontFamily,
+      buttonRadius,
+      cardRadius,
+      customCSS,
+    } = req.body;
+
+    // ==========================================
+    // FIND ORGANIZATION
+    // ==========================================
+
+    const organization =
+      await Organization.findById(id);
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+    }
+
+    // ==========================================
+    // UPDATE THEME
+    // ==========================================
+
+    organization.theme = {
+      primaryColor:
+        primaryColor !== undefined
+          ? primaryColor
+          : organization.theme?.primaryColor || "#2563eb",
+
+      secondaryColor:
+        secondaryColor !== undefined
+          ? secondaryColor
+          : organization.theme?.secondaryColor || "#f4f6f8",
+
+      fontFamily:
+        fontFamily !== undefined
+          ? fontFamily
+          : organization.theme?.fontFamily || "Arial",
+
+      buttonRadius:
+        buttonRadius !== undefined
+          ? buttonRadius
+          : organization.theme?.buttonRadius || "6px",
+
+      cardRadius:
+        cardRadius !== undefined
+          ? cardRadius
+          : organization.theme?.cardRadius || "12px",
+    };
+
+    // ==========================================
+    // UPDATE CUSTOM CSS
+    // ==========================================
+
+    if (customCSS !== undefined) {
+      if (typeof customCSS !== "string") {
+        return res.status(400).json({
+          success: false,
+          message: "Custom CSS must be a string",
+        });
+      }
+
+      organization.customCSS = customCSS;
+    }
+
+    // ==========================================
+    // SAVE
+    // ==========================================
+
+    await organization.save();
+
+    // ==========================================
+    // AUDIT LOG
+    // ==========================================
+
+    await AuditLog.create({
+      user: req.user.userId,
+
+      action: "UPDATE_ORGANIZATION_THEME",
+
+      organization: organization._id,
+
+      details:
+        `Theme and custom CSS updated for ${organization.organizationName}`,
+    });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.json({
+      success: true,
+
+      message:
+        "Organization theme and custom CSS updated successfully",
+
+      organization,
+    });
+
+  } catch (error) {
+    console.error(
+      "UPDATE ORGANIZATION THEME ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
